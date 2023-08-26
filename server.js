@@ -1,7 +1,8 @@
 // get the express module
 const express = require("express")
 const app = express()
-
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
 
 // get the necessary imported modules from different file
 const userRoutes = require('./routes/test');

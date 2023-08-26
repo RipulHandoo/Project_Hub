@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 async function login(req, res) {
-    // Get the prn and password of the user 
     const prn = req.body.prn;
     const password = req.body.password;
 
@@ -15,36 +14,32 @@ async function login(req, res) {
         if (result.rows.length === 1) {
             const hashedPasswordFromDB = result.rows[0].password;
 
-            // Compare the entered password with the hashed password from the database
             const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
 
             if (passwordMatch) {
-                // Make user as a payload that will be taken to make a jwt token
                 const user = { name: prn };
 
-                const auth_token = jwt.sign(user, process.env.ACCESS_JWT_TOKEN_KEY);
+                const tokenExpiration = "1h"; // Token expires in 1 hour
+                const auth_token = jwt.sign(user, process.env.ACCESS_JWT_TOKEN_KEY, { expiresIn: tokenExpiration });
+
+                // Set the JWT token as a cookie
+                res.cookie("auth_token", auth_token, { httpOnly: true, maxAge: 3600000 }); // 1 hour in milliseconds
                 
-                // Set the Authorization header
-                res.setHeader("Authorization", "Bearer " + auth_token);
-                
-                // Send the JSON response
                 res.status(200).json({
                     message: "Login successful"
                 });
             } 
         } else {
-            res.status(200).json({
+            res.status(401).json({
                 status: "fail",
-                data: {
-                    PRN: prn,
-                },
+                message: "Invalid credentials"
             });
         }
     } catch (error) {
         console.error("Error in login:", error);
         res.status(500).json({
             status: "error",
-            message: "An error occurred during login.",
+            message: "An error occurred during login."
         });
     }
 }

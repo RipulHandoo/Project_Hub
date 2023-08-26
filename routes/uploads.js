@@ -20,6 +20,7 @@ router.use(authentication)
 const uploads = multer({dest : "uploads/"});
 router.post("/upload", authentication , uploads.array("files",2), (req,res) =>{
     console.log(req.files);
+    console.log(req.user)
     res.status(201).json({
         messages:"file uploaded successfully"
     });
